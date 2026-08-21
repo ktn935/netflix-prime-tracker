@@ -67,9 +67,18 @@ def main():
         default="daily",
         help="daily=本日終了分のみ、weekly=今週土曜までの一覧",
     )
+    parser.add_argument(
+        "--days-ahead",
+        type=int,
+        default=None,
+        help="対象日数を直接指定する(動作確認用。指定時はmodeの自動計算より優先)",
+    )
     args = parser.parse_args()
 
-    days_ahead = 0 if args.mode == "daily" else _weekly_days_ahead()
+    if args.days_ahead is not None:
+        days_ahead = args.days_ahead
+    else:
+        days_ahead = 0 if args.mode == "daily" else _weekly_days_ahead()
 
     try:
         netflix_items = fetch_netflix_expiring(target_days_ahead=days_ahead)
