@@ -4,14 +4,14 @@ Netflix / Prime Videoの配信終了予定を取得し、Xに投稿するメイ�
 Netflix・Prime Videoはそれぞれ別のツイートとして投稿する。
 
 投稿モードは2種類:
-  daily  = 本日(23:59まで)に配信終了する作品のみ(毎朝8時に投稿)
-  weekly = 今週の土曜日(23:59)までに配信終了する作品一覧(毎週日曜0:01に投稿)
+  daily   = 本日(23:59まで)に配信終了する作品のみ(毎朝8時に投稿)
+  weekend = 金曜(当日)〜日曜(23:59)までに配信終了する作品一覧(毎週金曜18:30に投稿)
 
 ローカルでテストする場合:
   1. .env ファイルなどでAPIキーを環境変数に設定
-  2. python main.py --dry-run             で投稿せず内容だけ確認(daily)
-  3. python main.py --mode weekly --dry-run  で週間モードの内容を確認
-  4. python main.py                       で実際に投稿
+  2. python main.py --dry-run              で投稿せず内容だけ確認(daily)
+  3. python main.py --mode weekend --dry-run  で週末モードの内容を確認
+  4. python main.py                        で実際に投稿
 """
 import sys
 import argparse
@@ -23,10 +23,10 @@ from compose import build_netflix_tweet, build_prime_tweet, JST
 from post_x import post_tweet, MAX_IMAGES
 
 
-def _weekly_days_ahead():
-    """今日から今週土曜日までの日数(日曜に実行すれば6になる)"""
+def _weekend_days_ahead():
+    """今日(金曜想定)から日曜日までの日数(金曜に実行すれば2になる)"""
     today = datetime.datetime.now(JST).date()
-    return (5 - today.weekday()) % 7
+    return (6 - today.weekday()) % 7
 
 
 def _thumbnails(items, max_images=MAX_IMAGES):
@@ -63,9 +63,9 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["daily", "weekly"],
+        choices=["daily", "weekend"],
         default="daily",
-        help="daily=本日終了分のみ、weekly=今週土曜までの一覧",
+        help="daily=本日終了分のみ、weekend=金〜日曜までの一覧",
     )
     parser.add_argument(
         "--days-ahead",
@@ -78,7 +78,7 @@ def main():
     if args.days_ahead is not None:
         days_ahead = args.days_ahead
     else:
-        days_ahead = 0 if args.mode == "daily" else _weekly_days_ahead()
+        days_ahead = 0 if args.mode == "daily" else _weekend_days_ahead()
 
     try:
         netflix_items = fetch_netflix_expiring(target_days_ahead=days_ahead)

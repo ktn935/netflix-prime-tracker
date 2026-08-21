@@ -4,8 +4,8 @@ on:
   schedule:
     # UTC 23:00 = 日本時間 翌8:00 (毎日, 本日終了分)
     - cron: "0 23 * * *"
-    # UTC(土) 15:01 = 日本時間(日) 0:01 (毎週, 今週土曜までの一覧)
-    - cron: "1 15 * * 6"
+    # UTC(金) 9:30 = 日本時間(金) 18:30 (毎週金曜, 週末に見よう: 金〜日曜までの一覧)
+    - cron: "30 9 * * 5"
   workflow_dispatch:
     inputs:
       mode:
@@ -15,7 +15,7 @@ on:
         type: choice
         options:
           - daily
-          - weekly
+          - weekend
       days_ahead:
         description: "対象日数を直接指定(動作確認用。空欄なら自動計算)"
         required: false
@@ -39,8 +39,8 @@ jobs:
       - name: Determine post mode
         id: mode
         run: |
-          if [ "${{ github.event.schedule }}" = "1 15 * * 6" ]; then
-            echo "mode=weekly" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event.schedule }}" = "30 9 * * 5" ]; then
+            echo "mode=weekend" >> "$GITHUB_OUTPUT"
           elif [ -n "${{ github.event.inputs.mode }}" ]; then
             echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
           else

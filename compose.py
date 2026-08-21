@@ -4,8 +4,8 @@
 Netflix / Prime Videoはそれぞれ別のツイートとして投稿する。
 
 投稿モードは2種類:
-  daily  = 本日(23:59まで)に配信終了する作品のみ(毎朝8時に投稿)
-  weekly = 今週の土曜日(23:59)までに配信終了する作品一覧(毎週日曜0:01に投稿)
+  daily   = 本日(23:59まで)に配信終了する作品のみ(毎朝8時に投稿)
+  weekend = 金曜(当日)〜日曜(23:59)までに配信終了する作品一覧(毎週金曜18:30に投稿)
 """
 import datetime
 
@@ -20,15 +20,15 @@ def _today():
     return datetime.datetime.now(JST).date()
 
 
-def _this_saturday(today):
-    return today + datetime.timedelta(days=(5 - today.weekday()) % 7)
+def _this_sunday(today):
+    return today + datetime.timedelta(days=(6 - today.weekday()) % 7)
 
 
 def _header_label(mode):
     today = _today()
-    if mode == "weekly":
-        saturday = _this_saturday(today)
-        return f"【今週 配信終了予定】{today.strftime('%m/%d')}〜{saturday.strftime('%m/%d')}(土)23:59まで"
+    if mode == "weekend":
+        sunday = _this_sunday(today)
+        return f"【週末に見よう】{today.strftime('%m/%d')}(金)〜{sunday.strftime('%m/%d')}(日) 配信終了予定"
     return f"【本日 配信終了予定】{today.strftime('%m/%d')} 23:59まで"
 
 
@@ -47,7 +47,7 @@ def _format_titles(items, with_link=False, show_date=False):
 
 
 def build_netflix_tweet(netflix_items, mode="daily"):
-    nf_line = _format_titles(netflix_items, with_link=True, show_date=(mode == "weekly"))
+    nf_line = _format_titles(netflix_items, with_link=True, show_date=(mode == "weekend"))
     if not nf_line:
         return None
     header = _header_label(mode)
@@ -55,7 +55,7 @@ def build_netflix_tweet(netflix_items, mode="daily"):
 
 
 def build_prime_tweet(prime_items, mode="daily"):
-    pv_line = _format_titles(prime_items, with_link=True, show_date=(mode == "weekly"))
+    pv_line = _format_titles(prime_items, with_link=True, show_date=(mode == "weekend"))
     if not pv_line:
         return None
     header = _header_label(mode)
@@ -67,4 +67,4 @@ if __name__ == "__main__":
     sample_pv = [{"title": "サンプル作品B", "date": "08/22", "url": "https://www.amazon.co.jp/dp/XXXX?tag=nomissvod-22"}]
     print(build_netflix_tweet(sample_nf, mode="daily"))
     print()
-    print(build_prime_tweet(sample_pv, mode="weekly"))
+    print(build_prime_tweet(sample_pv, mode="weekend"))
