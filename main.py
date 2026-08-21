@@ -20,7 +20,8 @@ import datetime
 from scrape_netflix import fetch_netflix_expiring
 from scrape_prime import fetch_prime_expiring
 from compose import build_netflix_tweet, build_prime_tweet, JST
-from post_x import post_tweet, MAX_IMAGES
+from make_collage import make_collage
+from post_x import post_tweet
 
 
 def _weekend_days_ahead():
@@ -29,28 +30,24 @@ def _weekend_days_ahead():
     return (6 - today.weekday()) % 7
 
 
-def _thumbnails(items, max_images=MAX_IMAGES):
-    return [it["thumbnail"] for it in items if it.get("thumbnail")][:max_images]
-
-
-def _handle_post(label, text, image_urls, dry_run):
+def _handle_post(label, text, items, service, dry_run):
     if text is None:
         print(f"[{label}] 投稿対象の作品がありませんでした。投稿をスキップします。")
         return
 
+    image_bytes = make_collage(items, service)
+
     print(f"----- {label} 投稿文 -----")
     print(text)
     print(f"文字数: {len(text)}")
-    print(f"添付画像: {len(image_urls)}枚")
-    for u in image_urls:
-        print("  -", u)
+    print(f"まとめ画像: {'あり' if image_bytes else 'なし'}")
     print("----------------------------")
 
     if dry_run:
         print("(--dry-run のため実際の投稿は行いません)")
         return
 
-    response = post_tweet(text, image_urls=image_urls)
+    response = post_tweet(text, image_bytes=image_bytes)
     print(f"[{label}] 投稿しました:", response)
 
 
@@ -95,13 +92,15 @@ def main():
     _handle_post(
         "Netflix",
         build_netflix_tweet(netflix_items, mode=args.mode),
-        _thumbnails(netflix_items),
+        netflix_items,
+        "netflix",
         args.dry_run,
     )
     _handle_post(
         "Prime Video",
         build_prime_tweet(prime_items, mode=args.mode),
-        _thumbnails(prime_items),
+        prime_items,
+        "prime",
         args.dry_run,
     )
 

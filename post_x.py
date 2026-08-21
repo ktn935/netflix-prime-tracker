@@ -12,10 +12,7 @@ APIキー類は環境変数から読み込む(コードに直接書かない)。
 import io
 import os
 
-import requests
 import tweepy
-
-MAX_IMAGES = 4
 
 
 def _credentials():
@@ -44,23 +41,15 @@ def get_api_v1():
     return tweepy.API(auth)
 
 
-def _upload_images(image_urls):
+def _upload_image_bytes(image_bytes):
     api = get_api_v1()
-    media_ids = []
-    for url in image_urls[:MAX_IMAGES]:
-        try:
-            resp = requests.get(url, timeout=20)
-            resp.raise_for_status()
-            media = api.media_upload(filename="thumbnail.jpg", file=io.BytesIO(resp.content))
-            media_ids.append(media.media_id)
-        except Exception as e:
-            print(f"[警告] 画像アップロードに失敗しました ({url}): {e}")
-    return media_ids
+    media = api.media_upload(filename="collage.png", file=io.BytesIO(image_bytes))
+    return media.media_id
 
 
-def post_tweet(text: str, image_urls=None):
+def post_tweet(text: str, image_bytes=None):
     client = get_client()
-    media_ids = _upload_images(image_urls) if image_urls else None
+    media_ids = [_upload_image_bytes(image_bytes)] if image_bytes else None
     if media_ids:
         response = client.create_tweet(text=text, media_ids=media_ids)
     else:
