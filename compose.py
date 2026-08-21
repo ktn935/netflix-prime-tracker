@@ -4,7 +4,6 @@
 """
 
 HASHTAGS = "#Netflix #NetflixJP #AmazonPrimeVideo #プライムビデオ #配信終了予定"
-AFFILIATE_NOTICE = "※Amazonアソシエイトとして紹介料を得ています"
 
 
 def _format_titles(items, with_link=False):
@@ -35,9 +34,6 @@ def build_tweet(netflix_items, prime_items):
         return None  # 投稿すべき内容がない
 
     parts.append(f"\n\n{HASHTAGS}")
-
-    if pv_line:
-        parts.append(f"\n{AFFILIATE_NOTICE}")
 
     return "".join(parts)
 
