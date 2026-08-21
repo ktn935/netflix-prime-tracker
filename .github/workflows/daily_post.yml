@@ -2,9 +2,20 @@ name: Daily VOD Post
 
 on:
   schedule:
-    # UTC 23:00 = 日本時間 翌8:00 に実行
+    # UTC 23:00 = 日本時間 翌8:00 (毎日, 本日終了分)
     - cron: "0 23 * * *"
-  workflow_dispatch: {}  # 手動実行もできるようにする
+    # UTC(土) 15:01 = 日本時間(日) 0:01 (毎週, 今週土曜までの一覧)
+    - cron: "1 15 * * 6"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "投稿モード"
+        required: false
+        default: "daily"
+        type: choice
+        options:
+          - daily
+          - weekly
 
 jobs:
   post:
@@ -21,10 +32,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Determine post mode
+        id: mode
+        run: |
+          if [ "${{ github.event.schedule }}" = "1 15 * * 6" ]; then
+            echo "mode=weekly" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.inputs.mode }}" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=daily" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run posting script
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-        run: python main.py
+        run: python main.py --mode ${{ steps.mode.outputs.mode }}
