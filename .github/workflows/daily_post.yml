@@ -16,6 +16,10 @@ on:
         options:
           - daily
           - weekly
+      days_ahead:
+        description: "対象日数を直接指定(動作確認用。空欄なら自動計算)"
+        required: false
+        default: ""
 
 jobs:
   post:
@@ -49,4 +53,9 @@ jobs:
           X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-        run: python main.py --mode ${{ steps.mode.outputs.mode }}
+        run: |
+          ARGS="--mode ${{ steps.mode.outputs.mode }}"
+          if [ -n "${{ github.event.inputs.days_ahead }}" ]; then
+            ARGS="$ARGS --days-ahead ${{ github.event.inputs.days_ahead }}"
+          fi
+          python main.py $ARGS
