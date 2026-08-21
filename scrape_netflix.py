@@ -11,6 +11,8 @@ import html
 import datetime
 import requests
 
+JST = datetime.timezone(datetime.timedelta(hours=9))
+
 URL = "https://www.net-frx.com/p/netflix-expiring.html"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -40,7 +42,7 @@ def fetch_netflix_expiring(target_days_ahead=1):
     resp.raise_for_status()
     page_html = resp.text
 
-    today = datetime.date.today()
+    today = datetime.datetime.now(JST).date()
     target_dates = {
         (today + datetime.timedelta(days=i)).strftime("%m/%d")
         for i in range(target_days_ahead + 1)

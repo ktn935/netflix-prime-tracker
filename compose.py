@@ -44,7 +44,8 @@ def build_tweet(netflix_items, prime_items):
 
 def _today_label():
     import datetime
-    return datetime.date.today().strftime("%m/%d")
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+    return datetime.datetime.now(jst).date().strftime("%m/%d")
 
 
 if __name__ == "__main__":
