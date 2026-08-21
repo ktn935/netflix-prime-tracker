@@ -13,6 +13,7 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 
 NETFLIX_HASHTAGS = "#Netflix #NetflixJP #配信終了予定"
 PRIME_HASHTAGS = "#AmazonPrimeVideo #プライムビデオ #配信終了予定"
+CTA = "👉今のうちにマイリスト追加"
 
 
 def _today():
@@ -50,7 +51,7 @@ def build_netflix_tweet(netflix_items, mode="daily"):
     if not nf_line:
         return None
     header = _header_label(mode)
-    return f"🟥{header}\n🟥Netflix\n{nf_line}\n\n{NETFLIX_HASHTAGS}"
+    return f"🟥{header}\n{CTA}\n🟥Netflix\n{nf_line}\n\n{NETFLIX_HASHTAGS}"
 
 
 def build_prime_tweet(prime_items, mode="daily"):
@@ -58,7 +59,7 @@ def build_prime_tweet(prime_items, mode="daily"):
     if not pv_line:
         return None
     header = _header_label(mode)
-    return f"🟦{header}\n🟦Prime Video\n{pv_line}\n\n{PRIME_HASHTAGS}"
+    return f"🟦{header}\n{CTA}\n🟦Prime Video\n{pv_line}\n\n{PRIME_HASHTAGS}"
 
 
 if __name__ == "__main__":
