@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Netflix / Prime Videoの配信終了予定を取得し、Xに投稿するメインスクリプト。
+Netflix・Prime Videoはそれぞれ別のツイートとして投稿する。
 
 ローカルでテストする場合:
   1. .env ファイルなどでAPIキーを環境変数に設定
@@ -12,15 +13,33 @@ import argparse
 
 from scrape_netflix import fetch_netflix_expiring
 from scrape_prime import fetch_prime_expiring
-from compose import build_tweet
+from compose import build_netflix_tweet, build_prime_tweet
 from post_x import post_tweet, MAX_IMAGES
 
 
-def _select_thumbnails(netflix_items, prime_items, max_images=MAX_IMAGES):
-    """添付画像を選ぶ。Amazonアソシエイトのリンクがある Prime Video を優先する。"""
-    candidates = [it.get("thumbnail") for it in prime_items] + \
-                 [it.get("thumbnail") for it in netflix_items]
-    return [t for t in candidates if t][:max_images]
+def _thumbnails(items, max_images=MAX_IMAGES):
+    return [it["thumbnail"] for it in items if it.get("thumbnail")][:max_images]
+
+
+def _handle_post(label, text, image_urls, dry_run):
+    if text is None:
+        print(f"[{label}] 投稿対象の作品がありませんでした。投稿をスキップします。")
+        return
+
+    print(f"----- {label} 投稿文 -----")
+    print(text)
+    print(f"文字数: {len(text)}")
+    print(f"添付画像: {len(image_urls)}枚")
+    for u in image_urls:
+        print("  -", u)
+    print("----------------------------")
+
+    if dry_run:
+        print("(--dry-run のため実際の投稿は行いません)")
+        return
+
+    response = post_tweet(text, image_urls=image_urls)
+    print(f"[{label}] 投稿しました:", response)
 
 
 def main():
@@ -44,28 +63,18 @@ def main():
         print(f"[警告] Prime Video情報の取得に失敗しました: {e}", file=sys.stderr)
         prime_items = []
 
-    text = build_tweet(netflix_items, prime_items)
-
-    if text is None:
-        print("投稿対象の作品がありませんでした。投稿をスキップします。")
-        return
-
-    image_urls = _select_thumbnails(netflix_items, prime_items)
-
-    print("----- 生成された投稿文 -----")
-    print(text)
-    print(f"文字数: {len(text)}")
-    print(f"添付画像: {len(image_urls)}枚")
-    for u in image_urls:
-        print("  -", u)
-    print("----------------------------")
-
-    if args.dry_run:
-        print("(--dry-run のため実際の投稿は行いません)")
-        return
-
-    response = post_tweet(text, image_urls=image_urls)
-    print("投稿しました:", response)
+    _handle_post(
+        "Netflix",
+        build_netflix_tweet(netflix_items),
+        _thumbnails(netflix_items),
+        args.dry_run,
+    )
+    _handle_post(
+        "Prime Video",
+        build_prime_tweet(prime_items),
+        _thumbnails(prime_items),
+        args.dry_run,
+    )
 
 
 if __name__ == "__main__":

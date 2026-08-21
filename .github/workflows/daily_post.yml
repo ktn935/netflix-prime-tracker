@@ -2,8 +2,8 @@ name: Daily VOD Post
 
 on:
   schedule:
-    # UTC 21:00 = 日本時間 翌6:00 に実行
-    - cron: "0 21 * * *"
+    # UTC 23:00 = 日本時間 翌8:00 に実行
+    - cron: "0 23 * * *"
   workflow_dispatch: {}  # 手動実行もできるようにする
 
 jobs:
