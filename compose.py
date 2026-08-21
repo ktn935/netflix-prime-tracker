@@ -22,7 +22,7 @@ def build_tweet(netflix_items, prime_items):
     today_str = _today_label()
     parts = [f"【本日〜明日 配信終了予定】{today_str}"]
 
-    nf_line = _format_titles(netflix_items)
+    nf_line = _format_titles(netflix_items, with_link=True)
     if nf_line:
         parts.append(f"\n■Netflix\n{nf_line}")
 

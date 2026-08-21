@@ -76,7 +76,12 @@ def fetch_netflix_expiring(target_days_ahead=1):
             thumb_m = THUMBNAIL_RE.search(block)
             thumbnail = thumb_m.group(1) if thumb_m else None
 
-            results.append({"title": title_text, "date": date_str, "thumbnail": thumbnail})
+            results.append({
+                "title": title_text,
+                "date": date_str,
+                "thumbnail": thumbnail,
+                "url": title_url,
+            })
 
     return results
 
