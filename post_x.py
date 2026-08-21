@@ -14,10 +14,10 @@ import tweepy
 
 
 def get_client():
-    api_key = os.environ["X_API_KEY"]
-    api_secret = os.environ["X_API_KEY_SECRET"]
-    access_token = os.environ["X_ACCESS_TOKEN"]
-    access_secret = os.environ["X_ACCESS_TOKEN_SECRET"]
+    api_key = os.environ["X_API_KEY"].strip()
+    api_secret = os.environ["X_API_KEY_SECRET"].strip()
+    access_token = os.environ["X_ACCESS_TOKEN"].strip()
+    access_secret = os.environ["X_ACCESS_TOKEN_SECRET"].strip()
 
     client = tweepy.Client(
         consumer_key=api_key,
