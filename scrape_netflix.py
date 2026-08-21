@@ -25,6 +25,9 @@ TITLE_LINK_RE = re.compile(
     r'<a href="(https://www\.netflix\.com/[^"]*?/title/\d+)"[^>]*>\s*([^<]+?)\s*</a>'
 )
 
+# 作品サムネイル画像のパターン(タイトルリンクの少し後ろに出てくる)
+THUMBNAIL_RE = re.compile(r'<img[^>]*class="pht-exl25"[^>]*src="([^"]+)"')
+
 
 def fetch_netflix_expiring(target_days_ahead=1):
     """
@@ -58,12 +61,20 @@ def fetch_netflix_expiring(target_days_ahead=1):
         section = page_html[start:end]
 
         seen_urls = set()
-        for tm in TITLE_LINK_RE.finditer(section):
+        title_matches = list(TITLE_LINK_RE.finditer(section))
+        for ti, tm in enumerate(title_matches):
             title_url, title_text = tm.group(1), html.unescape(tm.group(2).strip())
             if title_url in seen_urls:
                 continue
             seen_urls.add(title_url)
-            results.append({"title": title_text, "date": date_str})
+
+            # このタイトルの直後、次のタイトルが始まるまでの範囲でサムネイルを探す
+            block_end = title_matches[ti + 1].start() if ti + 1 < len(title_matches) else len(section)
+            block = section[tm.end():block_end]
+            thumb_m = THUMBNAIL_RE.search(block)
+            thumbnail = thumb_m.group(1) if thumb_m else None
+
+            results.append({"title": title_text, "date": date_str, "thumbnail": thumbnail})
 
     return results
 

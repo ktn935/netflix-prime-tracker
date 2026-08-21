@@ -13,7 +13,14 @@ import argparse
 from scrape_netflix import fetch_netflix_expiring
 from scrape_prime import fetch_prime_expiring
 from compose import build_tweet
-from post_x import post_tweet
+from post_x import post_tweet, MAX_IMAGES
+
+
+def _select_thumbnails(netflix_items, prime_items, max_images=MAX_IMAGES):
+    """添付画像を選ぶ。Amazonアソシエイトのリンクがある Prime Video を優先する。"""
+    candidates = [it.get("thumbnail") for it in prime_items] + \
+                 [it.get("thumbnail") for it in netflix_items]
+    return [t for t in candidates if t][:max_images]
 
 
 def main():
@@ -43,16 +50,21 @@ def main():
         print("投稿対象の作品がありませんでした。投稿をスキップします。")
         return
 
+    image_urls = _select_thumbnails(netflix_items, prime_items)
+
     print("----- 生成された投稿文 -----")
     print(text)
     print(f"文字数: {len(text)}")
+    print(f"添付画像: {len(image_urls)}枚")
+    for u in image_urls:
+        print("  -", u)
     print("----------------------------")
 
     if args.dry_run:
         print("(--dry-run のため実際の投稿は行いません)")
         return
 
-    response = post_tweet(text)
+    response = post_tweet(text, image_urls=image_urls)
     print("投稿しました:", response)
 
 

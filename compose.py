@@ -3,18 +3,20 @@
 取得した作品リストから、Xに投稿する文章を組み立てる。
 """
 
-MAX_LEN = 270  # X上限(280)より少し余裕を持たせる
-MAX_TITLES_PER_SERVICE = 5
+HASHTAGS = "#Netflix #NetflixJP #AmazonPrimeVideo #プライムビデオ #配信終了予定"
+AFFILIATE_NOTICE = "※Amazonアソシエイトとして紹介料を得ています"
 
 
-def _format_titles(items, max_titles=MAX_TITLES_PER_SERVICE):
+def _format_titles(items, with_link=False):
     if not items:
         return None
-    titles = [it["title"] for it in items[:max_titles]]
-    line = "・" + "\n・".join(titles)
-    if len(items) > max_titles:
-        line += f"\n他{len(items) - max_titles}作品"
-    return line
+    lines = []
+    for it in items:
+        line = f"・{it['title']}"
+        if with_link and it.get("url"):
+            line += f"\n{it['url']}"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def build_tweet(netflix_items, prime_items):
@@ -25,19 +27,19 @@ def build_tweet(netflix_items, prime_items):
     if nf_line:
         parts.append(f"\n■Netflix\n{nf_line}")
 
-    pv_line = _format_titles(prime_items)
+    pv_line = _format_titles(prime_items, with_link=True)
     if pv_line:
         parts.append(f"\n■Prime Video\n{pv_line}")
 
     if not nf_line and not pv_line:
         return None  # 投稿すべき内容がない
 
-    text = "".join(parts)
+    parts.append(f"\n\n{HASHTAGS}")
 
-    if len(text) > MAX_LEN:
-        text = text[: MAX_LEN - 1] + "…"
+    if pv_line:
+        parts.append(f"\n{AFFILIATE_NOTICE}")
 
-    return text
+    return "".join(parts)
 
 
 def _today_label():
@@ -47,5 +49,5 @@ def _today_label():
 
 if __name__ == "__main__":
     sample_nf = [{"title": "サンプル作品A", "date": "08/22"}]
-    sample_pv = [{"title": "サンプル作品B", "date": "08/22"}]
+    sample_pv = [{"title": "サンプル作品B", "date": "08/22", "url": "https://www.amazon.co.jp/dp/XXXX?tag=nomissvod-22"}]
     print(build_tweet(sample_nf, sample_pv))
