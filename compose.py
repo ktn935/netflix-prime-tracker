@@ -25,7 +25,7 @@ def build_netflix_tweet(netflix_items):
     if not nf_line:
         return None
     today_str = _today_label()
-    return f"【本日〜明日 配信終了予定】{today_str}\n■Netflix\n{nf_line}\n\n{NETFLIX_HASHTAGS}"
+    return f"🟥【本日〜明日 配信終了予定】{today_str}\n🟥Netflix\n{nf_line}\n\n{NETFLIX_HASHTAGS}"
 
 
 def build_prime_tweet(prime_items):
@@ -33,7 +33,7 @@ def build_prime_tweet(prime_items):
     if not pv_line:
         return None
     today_str = _today_label()
-    return f"【本日〜明日 配信終了予定】{today_str}\n■Prime Video\n{pv_line}\n\n{PRIME_HASHTAGS}"
+    return f"🟦【本日〜明日 配信終了予定】{today_str}\n🟦Prime Video\n{pv_line}\n\n{PRIME_HASHTAGS}"
 
 
 def _today_label():
