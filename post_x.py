@@ -47,9 +47,9 @@ def _upload_image_bytes(image_bytes):
     return media.media_id
 
 
-def post_tweet(text: str, image_bytes=None):
+def post_tweet(text: str, images=None):
     client = get_client()
-    media_ids = [_upload_image_bytes(image_bytes)] if image_bytes else None
+    media_ids = [_upload_image_bytes(img) for img in images] if images else None
     if media_ids:
         response = client.create_tweet(text=text, media_ids=media_ids)
     else:

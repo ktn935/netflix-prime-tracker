@@ -21,6 +21,7 @@ from scrape_netflix import fetch_netflix_expiring
 from scrape_prime import fetch_prime_expiring
 from compose import build_netflix_tweet, build_prime_tweet, JST
 from make_collage import make_collage
+from make_text_card import make_text_card
 from post_x import post_tweet
 
 
@@ -30,24 +31,28 @@ def _weekend_days_ahead():
     return (6 - today.weekday()) % 7
 
 
-def _handle_post(label, text, items, service, dry_run):
+def _handle_post(label, text, items, service, mode, today, days_remaining, dry_run):
     if text is None:
         print(f"[{label}] 投稿対象の作品がありませんでした。投稿をスキップします。")
         return
 
-    image_bytes = make_collage(items, service)
+    collage_bytes = make_collage(items, service)
+    text_card = make_text_card(
+        items, service, mode=mode, reference_date=today, days_remaining=days_remaining,
+    )
+    images = ([collage_bytes] if collage_bytes else []) + ([text_card] if text_card else [])
 
     print(f"----- {label} 投稿文 -----")
     print(text)
     print(f"文字数: {len(text)}")
-    print(f"まとめ画像: {'あり' if image_bytes else 'なし'}")
+    print(f"添付画像: {len(images)}枚(サムネ一覧{'あり' if collage_bytes else 'なし'}/文字カード{'あり' if text_card else 'なし'})")
     print("----------------------------")
 
     if dry_run:
         print("(--dry-run のため実際の投稿は行いません)")
         return
 
-    response = post_tweet(text, image_bytes=image_bytes)
+    response = post_tweet(text, images=images)
     print(f"[{label}] 投稿しました:", response)
 
 
@@ -72,10 +77,16 @@ def main():
     )
     args = parser.parse_args()
 
+    today = datetime.datetime.now(JST).date()
+
     if args.days_ahead is not None:
         days_ahead = args.days_ahead
     else:
         days_ahead = 0 if args.mode == "daily" else _weekend_days_ahead()
+
+    # 文字カード右上の「あと◯日」リボンバッジ用(0以下なら「本日ラスト」表記になる)
+    deadline_date = today + datetime.timedelta(days=days_ahead)
+    days_remaining = (deadline_date - today).days
 
     try:
         netflix_items = fetch_netflix_expiring(target_days_ahead=days_ahead)
@@ -91,16 +102,22 @@ def main():
 
     _handle_post(
         "Netflix",
-        build_netflix_tweet(netflix_items, mode=args.mode),
+        build_netflix_tweet(netflix_items, mode=args.mode, reference_date=today),
         netflix_items,
         "netflix",
+        args.mode,
+        today,
+        days_remaining,
         args.dry_run,
     )
     _handle_post(
         "Prime Video",
-        build_prime_tweet(prime_items, mode=args.mode),
+        build_prime_tweet(prime_items, mode=args.mode, reference_date=today),
         prime_items,
         "prime",
+        args.mode,
+        today,
+        days_remaining,
         args.dry_run,
     )
 
