@@ -20,6 +20,11 @@ on:
         description: "対象日数を直接指定(動作確認用。空欄なら自動計算)"
         required: false
         default: ""
+      dry_run:
+        description: "trueなら実際には投稿せず、生成内容の確認だけ行う"
+        required: false
+        default: "true"
+        type: boolean
 
 jobs:
   post:
@@ -57,5 +62,8 @@ jobs:
           ARGS="--mode ${{ steps.mode.outputs.mode }}"
           if [ -n "${{ github.event.inputs.days_ahead }}" ]; then
             ARGS="$ARGS --days-ahead ${{ github.event.inputs.days_ahead }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
           fi
           python main.py $ARGS
