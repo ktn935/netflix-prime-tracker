@@ -9,7 +9,8 @@ Netflixの「配信終了予定作品」を Get Freax (net-frx.com) から取得
 import re
 import html
 import datetime
-import requests
+
+from http_utils import get_with_retry
 
 JST = datetime.timezone(datetime.timedelta(hours=9))
 
@@ -38,8 +39,7 @@ def fetch_netflix_expiring(target_days_ahead=1):
       1 = 今日・明日終了する作品
     戻り値: [{"title": str, "date": "MM/DD"}, ...]
     """
-    resp = requests.get(URL, headers=HEADERS, timeout=20)
-    resp.raise_for_status()
+    resp = get_with_retry(URL, headers=HEADERS)
     page_html = resp.text
 
     today = datetime.datetime.now(JST).date()

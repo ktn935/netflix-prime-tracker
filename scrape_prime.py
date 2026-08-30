@@ -10,7 +10,8 @@ Amazon Prime Videoの「配信終了予定作品」を vedyro.com から取得�
 import re
 import html
 import datetime
-import requests
+
+from http_utils import get_with_retry
 
 JST = datetime.timezone(datetime.timedelta(hours=9))
 
@@ -46,8 +47,7 @@ def fetch_prime_expiring(target_days_ahead=1):
     target_days_ahead: 今日から何日以内の終了予定を対象にするか
     戻り値: [{"title": str, "date": "MM/DD", "url": str, "thumbnail": str}, ...]
     """
-    resp = requests.get(URL, headers=HEADERS, timeout=20)
-    resp.raise_for_status()
+    resp = get_with_retry(URL, headers=HEADERS)
     page_html = resp.text
 
     today = datetime.datetime.now(JST).date()

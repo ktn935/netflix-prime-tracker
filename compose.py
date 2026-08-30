@@ -30,11 +30,21 @@ def _this_sunday(today):
     return today + datetime.timedelta(days=(6 - today.weekday()) % 7)
 
 
+_WEEKDAY_JA = ["月", "火", "水", "木", "金", "土", "日"]
+
+
+def _weekday_ja(d):
+    return _WEEKDAY_JA[d.weekday()]
+
+
 def _header_label(mode, reference_date=None):
     today = reference_date or _today()
     if mode == "weekend":
         sunday = _this_sunday(today)
-        return f"【週末に見よう】{today.strftime('%m/%d')}(金)〜{sunday.strftime('%m/%d')}(日) 配信終了予定"
+        return (
+            f"【週末に見よう】{today.strftime('%m/%d')}({_weekday_ja(today)})"
+            f"〜{sunday.strftime('%m/%d')}({_weekday_ja(sunday)}) 配信終了予定"
+        )
     return f"【本日 配信終了予定】{today.strftime('%m/%d')} 23:59まで"
 
 
